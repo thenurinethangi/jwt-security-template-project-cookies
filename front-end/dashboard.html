@@ -41,9 +41,10 @@
 
         fetch('http://localhost:8080/dashboard',{
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer '+localStorage.getItem('jwtToken')
-            },
+            credentials: 'include'
+            // headers: {
+            //     'Authorization': 'Bearer '+localStorage.getItem('jwtToken')
+            // },
 
         }).then(async response => {
             const responseData = await response.json();
@@ -62,7 +63,7 @@
             .catch(error => {
                 console.log("-------error-------")
                 console.log(JSON.parse(error.message));
-                window.location.href = "login.html";
+                // window.location.href = "login.html";
             });
     }
 
