@@ -1,6 +1,7 @@
 package org.example.demoauth.util;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,21 +29,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
-        String path = request.getServletPath();
-
         request.setAttribute("isExpired",false);
 
-        if ((authHeader == null || !authHeader.startsWith("Bearer ")) && path.startsWith("/auth")) {
-            filterChain.doFilter(request, response);
-            return;
+        String token = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                System.out.println("############ "+cookie.getName()+" "+cookie.getValue());
+                if ("jwtToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                }
+            }
         }
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+
+        if (token==null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
         String username = jwtUtil.extractUsername(token);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -63,7 +66,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
-
         filterChain.doFilter(request, response);
     }
 
